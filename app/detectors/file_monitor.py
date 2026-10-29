@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver as Observer
 from loguru import logger
 from app.core.models import FileEventData
 from app.core.entropy import file_entropy
