@@ -1,0 +1,42 @@
+app:
+  name: RDRS
+  version: "1.0.0"
+  simulation_mode: true
+
+monitoring:
+  # Keep this limited to the project sandbox while developing.
+  watch_paths:
+    - data/sandbox
+  event_window_seconds: 60
+  entropy_sample_bytes: 65536
+  process_snapshot_interval_seconds: 5
+  max_recent_events: 5000
+
+thresholds:
+  modified_files_per_window: 20
+  rename_count_per_window: 10
+  extension_change_count_per_window: 5
+  high_entropy: 7.2
+  cpu_percent: 80.0
+
+scoring:
+  rapid_encryption: 40
+  mass_rename: 30
+  high_entropy: 25
+  cpu_spike: 15
+  unknown_program: 10
+  normal_max_exclusive: 40
+  warning_max_exclusive: 70
+
+response:
+  quarantine_enabled: true
+  quarantine_dir: data/quarantine
+  max_quarantine_files_per_incident: 100
+
+logging:
+  directory: logs
+  retention: 14 days
+  rotation: 10 MB
+
+reports:
+  directory: data/reports

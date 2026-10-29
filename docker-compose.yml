@@ -1,0 +1,15 @@
+services:
+  rdrs:
+    build: .
+    container_name: rdrs
+    ports:
+      - "8001:8000"
+    environment:
+      RDRS_HOST: 0.0.0.0
+      RDRS_PORT: 8000
+      RDRS_SIMULATION_MODE: "true"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config.yaml:/app/config.yaml:ro
+    restart: unless-stopped

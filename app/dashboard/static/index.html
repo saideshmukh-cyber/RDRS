@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RDRS Dashboard</title><link rel="stylesheet" href="/dashboard.css"></head>
+<body><main class="container"><header><h1>RDRS Security Dashboard</h1><span id="health">Checking…</span></header>
+<section class="cards"><article><small>Threat level</small><strong id="level">Normal</strong></article><article><small>Threat score</small><strong id="score">0</strong></article><article><small>Window events</small><strong id="window">0</strong></article><article><small>Mode</small><strong id="mode">Simulation</strong></article></section>
+<section class="grid"><div><h2>Recent alerts</h2><table><thead><tr><th>Time</th><th>Level</th><th>Score</th><th>Message</th></tr></thead><tbody id="alerts"></tbody></table></div><div><h2>Recent events</h2><table><thead><tr><th>Type</th><th>File</th><th>Entropy</th><th>Time</th></tr></thead><tbody id="events"></tbody></table></div></section>
+<section><h2>Incidents</h2><table><thead><tr><th>ID</th><th>Created</th><th>Level</th><th>Score</th><th>Signals</th></tr></thead><tbody id="incidents"></tbody></table></section>
+<footer>RDRS educational defensive monitor • API docs at <a href="/docs">/docs</a></footer></main><script src="/dashboard.js"></script></body></html>

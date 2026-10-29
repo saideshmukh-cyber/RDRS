@@ -1,0 +1,36 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+
+# Local databases and backups
+backups/
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Local runtime data (keep folder placeholders)
+data/sandbox/*
+!data/sandbox/.gitkeep
+data/quarantine/*
+!data/quarantine/.gitkeep
+data/reports/*
+!data/reports/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Editor / OS / build artifacts
+.vscode/
+.DS_Store
+*.log
