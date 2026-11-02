@@ -1,9 +1,121 @@
-async function getJson(url){const r=await fetch(url);if(!r.ok)throw new Error(await r.text());return r.json()}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function refresh(){try{const [st,alerts,events,incidents,health]=await Promise.all([getJson('/status'),getJson('/alerts?limit=12'),getJson('/events?limit=12'),getJson('/incidents?limit=12'),getJson('/health')]);
- document.querySelector('#health').textContent=health.status.toUpperCase();document.querySelector('#level').textContent=st.level;document.querySelector('#score').textContent=st.score;document.querySelector('#window').textContent=st.window_events;document.querySelector('#mode').textContent=st.simulation_mode?'SIMULATION':'REVIEW CONFIG';
- document.querySelector('#alerts').innerHTML=alerts.map(a=>`<tr><td>${esc(new Date(a.timestamp).toLocaleTimeString())}</td><td>${esc(a.level)}</td><td>${a.score}</td><td>${esc(a.message)}</td></tr>`).join('')||'<tr><td colspan="4">No alerts</td></tr>';
- document.querySelector('#events').innerHTML=events.map(e=>`<tr><td>${esc(e.event_type)}</td><td title="${esc(e.path)}">${esc(e.path)}</td><td>${e.entropy==null?'—':Number(e.entropy).toFixed(2)}</td><td>${esc(new Date(e.timestamp).toLocaleTimeString())}</td></tr>`).join('')||'<tr><td colspan="4">No events</td></tr>';
- document.querySelector('#incidents').innerHTML=incidents.map(i=>`<tr><td>${i.id}</td><td>${esc(new Date(i.created_at).toLocaleString())}</td><td>${esc(i.level)}</td><td>${i.score}</td><td>${esc(i.signals.join(', '))}</td></tr>`).join('')||'<tr><td colspan="5">No incidents</td></tr>';
- }catch(e){document.querySelector('#health').textContent='API ERROR';console.error(e)}}
-refresh();setInterval(refresh,3000);
+
+async function getJson(url) {
+  const response = await fetch(url);
+
+  if (response.status === 401) {
+    window.location.replace("/login");
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  return response.json();
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[character]));
+}
+
+async function refresh() {
+  try {
+    const [status, alerts, events, incidents, health] = await Promise.all([
+      getJson("/status"),
+      getJson("/alerts?limit=12"),
+      getJson("/events?limit=12"),
+      getJson("/incidents?limit=12"),
+      getJson("/health")
+    ]);
+
+    document.querySelector("#health").textContent = health.status.toUpperCase();
+    document.querySelector("#level").textContent = status.level;
+    document.querySelector("#score").textContent = status.score;
+    document.querySelector("#window").textContent = status.window_events;
+    document.querySelector("#mode").textContent =
+      status.simulation_mode ? "SIMULATION" : "REVIEW CONFIG";
+
+    document.querySelector("#alerts").innerHTML =
+      alerts.map(alert => `
+        <tr>
+          <td>${esc(new Date(alert.timestamp).toLocaleTimeString())}</td>
+          <td>${esc(alert.level)}</td>
+          <td>${esc(alert.score)}</td>
+          <td>${esc(alert.message)}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="4">No alerts</td></tr>';
+
+    document.querySelector("#events").innerHTML =
+      events.map(event => `
+        <tr>
+          <td>${esc(event.event_type)}</td>
+          <td title="${esc(event.path)}">${esc(event.path)}</td>
+          <td>${event.entropy == null ? "—" : Number(event.entropy).toFixed(2)}</td>
+          <td>${esc(new Date(event.timestamp).toLocaleTimeString())}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="4">No events</td></tr>';
+
+    document.querySelector("#incidents").innerHTML =
+      incidents.map(incident => `
+        <tr>
+          <td>${esc(incident.id)}</td>
+          <td>${esc(new Date(incident.created_at).toLocaleString())}</td>
+          <td>${esc(incident.level)}</td>
+          <td>${esc(incident.score)}</td>
+          <td>${esc((incident.signals || []).join(", "))}</td>
+        </tr>
+      `).join("") || '<tr><td colspan="5">No incidents</td></tr>';
+
+  } catch (error) {
+    document.querySelector("#health").textContent = "API ERROR";
+    console.error(error);
+  }
+}
+
+document.querySelector("#logout-button").addEventListener("click", async () => {
+  const button = document.querySelector("#logout-button");
+  button.disabled = true;
+  button.textContent = "Logging out…";
+
+  try {
+    const csrfResponse = await fetch("/auth/csrf");
+
+    if (!csrfResponse.ok) {
+      throw new Error("Could not obtain a security token.");
+    }
+
+    const csrfData = await csrfResponse.json();
+
+    const response = await fetch("/auth/logout", {
+      method: "POST",
+      headers: {
+        "X-CSRF-Token": csrfData.csrf_token
+      }
+    });
+
+    if (response.status === 401) {
+      window.location.replace("/login");
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error("Logout failed.");
+    }
+
+    window.location.replace("/login");
+  } catch (error) {
+    console.error(error);
+    button.disabled = false;
+    button.textContent = "Log out";
+    alert("Unable to log out. Please try again.");
+  }
+});
+
+refresh();
+setInterval(refresh, 3000);

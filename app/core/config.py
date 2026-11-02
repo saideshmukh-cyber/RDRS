@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import os
@@ -7,6 +8,13 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
+
+
+def _bool_env(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 @dataclass(slots=True)
@@ -47,7 +55,10 @@ class Settings:
 
     @property
     def quarantine_enabled(self) -> bool:
-        return bool(self.raw["response"]["quarantine_enabled"])
+        return _bool_env(
+            "RDRS_QUARANTINE_ENABLED",
+            bool(self.raw["response"]["quarantine_enabled"]),
+        )
 
     @property
     def quarantine_dir(self) -> Path:
@@ -62,16 +73,10 @@ class Settings:
         return Path(self.raw["reports"]["directory"])
 
 
-def _bool_env(name: str, default: bool) -> bool:
-    value = os.getenv(name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
 def load_settings(config_path: str | Path = "config.yaml") -> Settings:
     load_dotenv()
     path = Path(os.getenv("RDRS_CONFIG_PATH", str(config_path)))
+
     with path.open("r", encoding="utf-8") as fh:
         raw = yaml.safe_load(fh) or {}
 
@@ -84,13 +89,18 @@ def load_settings(config_path: str | Path = "config.yaml") -> Settings:
     return Settings(
         env=os.getenv("RDRS_ENV", "development"),
         host=os.getenv("RDRS_HOST", "127.0.0.1"),
-        port=int(os.getenv("RDRS_PORT", "8000")),
+        port=int(os.getenv("PORT", os.getenv("RDRS_PORT", "8000"))),
         log_level=os.getenv("RDRS_LOG_LEVEL", "INFO"),
         database_url=os.getenv("RDRS_DATABASE_URL", "sqlite:///./data/rdrs.db"),
         config_path=path,
-        allow_origins=[x.strip() for x in os.getenv(
-            "RDRS_ALLOW_ORIGINS", "http://127.0.0.1:8000,http://localhost:8000"
-        ).split(",") if x.strip()],
+        allow_origins=[
+            x.strip()
+            for x in os.getenv(
+                "RDRS_ALLOW_ORIGINS",
+                "http://127.0.0.1:8000,http://localhost:8000",
+            ).split(",")
+            if x.strip()
+        ],
         simulation_mode=simulation,
         raw=raw,
     )

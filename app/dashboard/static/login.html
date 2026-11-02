@@ -1,0 +1,75 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RDRS Admin Login</title>
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+  <main class="login-container">
+    <form id="login-form" class="login-card">
+      <h1>RDRS</h1>
+      <p class="login-subtitle">Security Dashboard · Admin access</p>
+
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text"
+             autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password"
+             autocomplete="current-password" required>
+
+      <button id="login-button" type="submit">Sign in</button>
+      <p id="login-message" class="login-message" role="alert"></p>
+    </form>
+  </main>
+
+  <script>
+    const form = document.querySelector("#login-form");
+    const message = document.querySelector("#login-message");
+    const button = document.querySelector("#login-button");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "";
+      button.disabled = true;
+      button.textContent = "Signing in…";
+
+      try {
+        const csrfResponse = await fetch("/auth/csrf");
+        if (!csrfResponse.ok) {
+          throw new Error("Could not start a secure login session.");
+        }
+
+        const csrfData = await csrfResponse.json();
+
+        const response = await fetch("/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": csrfData.csrf_token
+          },
+          body: JSON.stringify({
+            username: document.querySelector("#username").value,
+            password: document.querySelector("#password").value
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || "Login failed.");
+        }
+
+        window.location.replace("/");
+      } catch (error) {
+        message.textContent = error.message || "Unable to log in.";
+        button.disabled = false;
+        button.textContent = "Sign in";
+      }
+    });
+  </script>
+</body>
+</html>

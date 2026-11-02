@@ -1,7 +1,10 @@
+
 services:
   rdrs:
     build: .
     container_name: rdrs
+    env_file:
+      - .env
     ports:
       - "8001:8000"
     environment:

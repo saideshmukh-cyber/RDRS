@@ -1,1 +1,227 @@
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0b1020;color:#e7ecf5}.container{max-width:1400px;margin:auto;padding:28px}header{display:flex;justify-content:space-between;align-items:center}h1{margin:0 0 22px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.cards article{background:#121a2d;border:1px solid #26324c;border-radius:12px;padding:20px}.cards small{display:block;color:#9aa8c1}.cards strong{font-size:30px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}section{margin-top:18px}section>div,section{background:#0f1729}h2{font-size:18px}table{width:100%;border-collapse:collapse;background:#121a2d;border-radius:10px;overflow:hidden}th,td{text-align:left;padding:10px;border-bottom:1px solid #26324c;font-size:13px}th{color:#9aa8c1}a{color:#8bb8ff}@media(max-width:900px){.cards,.grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){.cards,.grid{grid-template-columns:1fr}.container{padding:14px}table{display:block;overflow:auto}}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: #0b1020;
+  color: #e7ecf5;
+}
+
+.container {
+  max-width: 1400px;
+  margin: auto;
+  padding: 28px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+h1 {
+  margin: 0 0 10px;
+}
+
+.subtitle,
+.login-subtitle {
+  color: #9aa8c1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.cards article {
+  background: #121a2d;
+  border: 1px solid #26324c;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.cards small {
+  display: block;
+  color: #9aa8c1;
+}
+
+.cards strong {
+  font-size: 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+section {
+  margin-top: 18px;
+  background: #0f1729;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #121a2d;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #26324c;
+  font-size: 13px;
+}
+
+th {
+  color: #9aa8c1;
+}
+
+a {
+  color: #8bb8ff;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 16px;
+  background: #3978d4;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2e66b8;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  background: #26324c;
+  border: 1px solid #405071;
+}
+
+.secondary-button:hover {
+  background: #344361;
+}
+
+footer {
+  margin-top: 24px;
+  color: #9aa8c1;
+  font-size: 13px;
+}
+
+/* Login page */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  background: #121a2d;
+  border: 1px solid #26324c;
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
+
+.login-card h1 {
+  font-size: 32px;
+  margin-bottom: 6px;
+}
+
+.login-subtitle {
+  margin-top: 0;
+  margin-bottom: 28px;
+}
+
+.login-card label {
+  display: block;
+  margin: 16px 0 7px;
+  color: #cbd5e5;
+  font-size: 14px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #405071;
+  border-radius: 8px;
+  background: #0b1020;
+  color: #e7ecf5;
+  font: inherit;
+}
+
+.login-card input:focus {
+  outline: 2px solid #3978d4;
+  outline-offset: 1px;
+}
+
+.login-card button {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.login-message {
+  min-height: 20px;
+  color: #ff9b9b;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .cards,
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .cards,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 14px;
+  }
+
+  .dashboard-header,
+  .header-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  table {
+    display: block;
+    overflow: auto;
+  }
+}
