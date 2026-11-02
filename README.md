@@ -1,99 +1,282 @@
-# RDRS — Ransomware Detection and Response System
+# RDRS — Real-Time Detection and Response System
 
-Educational defensive monitor for ransomware-like file activity. This is a student/demo project, **not a production endpoint detection and response (EDR) product**. It does not encrypt files, execute malware, or kill processes. Keep simulation mode enabled and test only inside `data/sandbox`.
+RDRS is a security monitoring project designed to demonstrate file-event monitoring, security status reporting, alert and incident handling, and a web-based dashboard. It provides an API for interacting with monitoring data and supports simulation mode for controlled demonstrations.
 
-## Included functionality
+**GitHub Repository:** https://github.com/saideshmukh-cyber/RDRS
 
-- Watchdog filesystem monitoring for create/modify/delete/rename events
-- Shannon entropy sampling and rule-based sliding-window scoring
-- Process snapshots using `psutil`
-- SQLite persistence for events, alerts, incidents, and process snapshots
-- Critical incident creation and evidence-copy quarantine (originals are not moved/deleted by the responder)
-- FastAPI API and Swagger UI
-- Browser dashboard with CSS/JS served from dedicated routes
-- JSON, CSV, HTML and PDF incident reports
-- Pytest unit/integration/API smoke tests
-- Dockerfile and Compose deployment
-- GitHub Actions test workflow
+## Table of Contents
 
-## Requirements
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Application](#running-the-application)
+- [API Endpoints](#api-endpoints)
+- [Testing](#testing)
+- [Configuration](#configuration)
+- [Security Considerations](#security-considerations)
+- [Limitations](#limitations)
+- [Author](#author)
 
-- Python 3.12+
-- Git Bash or PowerShell on Windows
-- Docker Desktop for container deployment (optional)
+## Project Overview
 
-## Install and run (Windows Git Bash)
+RDRS demonstrates how a monitoring application can collect file-system events, expose security-related information through a REST API, and present monitoring results through a dashboard.
 
-Run from the repository root (`RDRS/`):
+The application is built with Python and FastAPI and can be run using Docker Compose. It includes a simulation mode to support controlled testing and demonstrations without requiring a production security-monitoring environment.
 
-```bash
-python --version
-python -m venv .venv
-source .venv/Scripts/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-cp .env.example .env
-python -m pytest -q
-python -m app.main --host 127.0.0.1 --port 8001
+## Features
+
+- **File monitoring:** Detects and records file-system events in configured watch directories.
+- **Security status:** Provides a status endpoint with the current monitoring score, severity level, event count, and monitored paths.
+- **Event management:** Exposes recorded file events through the API.
+- **Alert and incident endpoints:** Provides access to security alerts and incident information.
+- **Process monitoring data:** Exposes process snapshot information through the API.
+- **Web dashboard:** Provides a browser-based interface for viewing monitoring information.
+- **Settings management:** Supports reading settings and making permitted configuration updates.
+- **Reports:** Supports report access and export in supported formats, including JSON, CSV, HTML, and PDF.
+- **Simulation mode:** Supports controlled demonstrations and testing.
+- **Automated tests:** Includes a pytest test suite for checking application functionality and API behaviour.
+- **Docker support:** Allows the application to run in a containerized environment.
+
+## Technology Stack
+
+| Technology | Purpose |
+|---|---|
+| Python | Application logic |
+| FastAPI | REST API |
+| SQLAlchemy | Database interaction |
+| SQLite | Local database storage |
+| Docker | Application containerization |
+| Docker Compose | Application startup and configuration |
+| Pytest | Automated testing |
+| HTML, CSS and JavaScript | Web dashboard |
+| Watchdog | File-system event monitoring |
+
+## Project Structure
+
+The following is a high-level overview of the important project components.
+
+```text
+RDRS/
+├── app/
+│   ├── api/                 # API routes and application entry points
+│   ├── core/                # Core configuration and application logic
+│   └── detectors/           # Monitoring and detection components
+├── tests/                   # Automated tests
+├── data/                    # Local database and monitoring data
+│   └── sandbox/             # Directory used for controlled demonstrations
+├── logs/                    # Application logs
+├── backups/                 # Local database backups
+├── config.yaml              # Application configuration
+├── docker-compose.yml       # Docker Compose configuration
+├── Dockerfile               # Docker image configuration
+├── requirements.txt         # Python dependencies
+└── README.md                # Project documentation
 ```
 
-Open `http://127.0.0.1:8001/`, API docs at `/docs`, health at `/health`, status at `/status`. Keep the `.env` file local; never commit it. The default config watches only `data/sandbox`.
+*Note: The exact files and directories may vary slightly depending on the project version.*
 
-## Test and coverage
+## Prerequisites
+
+Before running RDRS, install:
+
+- [Git](https://git-scm.com/downloads)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) with Docker Compose support
+- A modern web browser
+
+Python and a virtual environment are also useful if you want to run tests or work on the application outside Docker.
+
+## Installation and Setup
+
+### 1. Clone the repository
+
+Open Git Bash or a terminal and run:
 
 ```bash
-python -m compileall -q app tests scripts
-python -m pytest -q
-python -m pytest --cov=app --cov-report=term-missing
+git clone https://github.com/saideshmukh-cyber/RDRS.git
+cd RDRS
 ```
 
-## Safe simulation
+### 2. Check Docker
 
-Back up any wanted content in `data/sandbox` first. The simulator deletes existing top-level `.txt` and `.locked` files in that sandbox before creating disposable samples. Start RDRS in terminal 1, then from terminal 2 (same project root and venv) run:
+Make sure Docker Desktop is running, then execute:
 
 ```bash
-python scripts/simulate_attack.py
+docker --version
+docker compose version
 ```
 
-Verify score/signals, alerts, incidents and evidence copies—not just filesystem event capture. Do not run on real files or widen watched paths for a demo.
+Both commands should display version information.
 
-## Docker Compose
+### 3. Start the application
 
-Container port is 8000 and host port is 8001 (`8001:8000`). With Docker Desktop running:
+From the project root directory, run:
 
 ```bash
-docker compose config
-docker compose build --no-cache
-docker compose up -d
+docker compose up --build -d
+```
+
+This builds the application image if needed and starts the configured services in the background.
+
+### 4. Verify the container
+
+Run:
+
+```bash
 docker compose ps
-docker compose logs --tail=200 rdrs
 ```
 
-Visit `http://127.0.0.1:8001/`, `/docs`, `/health`. Stop with `docker compose down`; don't add `-v` if preserving data matters.
-
-## Reports
-
-Get a real incident ID from `/incidents`, then replace `INCIDENT_ID` below:
+To inspect the application logs:
 
 ```bash
-curl -OJ http://127.0.0.1:8001/reports/INCIDENT_ID/json
-curl -OJ http://127.0.0.1:8001/reports/INCIDENT_ID/csv
-curl -OJ http://127.0.0.1:8001/reports/INCIDENT_ID/html
-curl -OJ http://127.0.0.1:8001/reports/INCIDENT_ID/pdf
+docker compose logs -f rdrs
 ```
 
-## GitHub
+Press `Ctrl+C` to stop following the logs. This does not, by itself, stop the container.
 
-Review `git status --short`, `git diff --check`, and staged files before committing. `.env`, `.venv`, databases, logs, sandbox files, quarantine evidence and generated reports must not be committed. If already cloned, inspect `git remote -v` and do not reinitialize Git.
+## Running the Application
 
-## Security / deployment boundary
+The current local Docker configuration maps host port **8001** to the application's container port.
 
-The API currently has no authentication. This release is for local demonstration or isolated evaluation only; do not expose it publicly as-is. Public/production deployment requires authentication/authorization, TLS, restrictive CORS, rate limiting, secret management, audit logging, backup/recovery, and operational monitoring. See `docs/RELEASE_CHECKLIST.md` for the full procedure.
+Open these addresses in your browser:
 
-## PRD traceability
+| Resource | URL | Purpose |
+|---|---|---|
+| Dashboard | http://localhost:8001/dashboard | Web dashboard |
+| Health check | http://localhost:8001/health | Application health |
+| Monitoring status | http://localhost:8001/status | Current monitoring status |
+| API documentation | http://localhost:8001/docs | Interactive API documentation, if enabled |
 
-A standalone PRD/FSD was not present in the ZIP audited here. Maintain requirement-to-code-to-test evidence against the actual PRD before claiming full compliance.
+A successful health check should return a response similar to:
 
-## FSD compliance and known limitations
+```json
+{
+  "status": "ok",
+  "service": "rdrs"
+}
+```
 
-See [docs/PRD_TRACEABILITY.md](docs/PRD_TRACEABILITY.md) for the requirement-by-requirement matrix based on FSD v1.0, acceptance evidence, and known gaps. Do not claim full compliance until the acceptance checklist passes on the target machine. In particular, unknown-program scoring is not implemented in this version, score history has no separate table, `/scan` reports current status rather than scanning an arbitrary path, and `/settings` changes only the runtime simulation flag. The API is unauthenticated and must not be exposed publicly as-is.
+The monitoring status response provides information such as the current score, severity level, event count, and monitored paths.
+
+### Stop the application
+
+To stop the services:
+
+```bash
+docker compose down
+```
+
+This stops and removes the Compose containers and network. It does not normally delete host-mounted application data.
+
+To start the application again:
+
+```bash
+docker compose up -d
+```
+
+## API Endpoints
+
+RDRS exposes API endpoints for monitoring, settings, events, alerts, incidents, process information, scanning, and reports.
+
+The following table lists the main endpoint paths used by the project. Refer to the interactive API documentation at `/docs` for the precise methods, parameters, and response schemas implemented in the current version.
+
+| Endpoint | Purpose |
+|---|---|
+| `/health` | Checks application health |
+| `/status` | Retrieves monitoring status |
+| `/events` | Accesses recorded file events |
+| `/alerts` | Accesses security alerts |
+| `/incidents` | Accesses incident information |
+| `/processes` | Accesses process monitoring data |
+| `/settings` | Reads or updates permitted settings |
+| `/scan` | Invokes the scanning functionality |
+| `/reports` | Accesses report functionality |
+| `/dashboard` | Opens the web dashboard |
+
+For local testing, use the base URL:
+
+```text
+http://localhost:8001
+```
+
+## Testing
+
+RDRS includes automated tests covering application and API behaviour.
+
+### Run the test suite
+
+If the Python dependencies are installed in the active environment, execute this command from the project root:
+
+```bash
+python -m pytest -q
+```
+
+The latest recorded test run completed with **49 passed tests and 1 warning**. Results may differ if the project code, environment, or dependencies change.
+
+To run a specific test file:
+
+```bash
+python -m pytest tests/test_api_smoke.py -v
+```
+
+To check for whitespace errors in Git changes:
+
+```bash
+git diff --check
+```
+
+## Configuration
+
+Application settings are managed through the project configuration and environment variables.
+
+The current setup includes:
+
+- `config.yaml` for application configuration.
+- `RDRS_HOST` and `RDRS_PORT` for the server binding inside the container.
+- `RDRS_SIMULATION_MODE` to control simulation mode.
+- `RDRS_DATABASE_URL` to configure the database connection.
+
+The default database configuration uses SQLite at:
+
+```text
+sqlite:///./data/rdrs.db
+```
+
+The Docker configuration mounts local data and log directories into the container so that application data can persist outside the container.
+
+Review `config.yaml`, `app/core/config.py`, `Dockerfile`, and `docker-compose.yml` before changing configuration values. Keep passwords, API keys, and other secrets out of source control.
+
+## Security Considerations
+
+RDRS is intended as a development, demonstration, and educational project unless it has been separately hardened and validated for production use.
+
+- **Authentication and authorization:** The current version does not have API authentication or authorization. Do not expose it directly to the public internet in this configuration.
+- **Simulation mode:** Use simulation mode for controlled demonstrations and testing.
+- **Monitoring scope:** File monitoring is limited to the directories configured and accessible to the application.
+- **Container isolation:** Running RDRS in Docker does not automatically grant it visibility into every file on the host computer.
+- **Data protection:** Back up important databases and review what data is collected before using the system with real files.
+- **Deployment:** A hosted container generally monitors the files accessible inside that hosted environment, not the files on your personal Windows computer.
+
+Before any public deployment, implement and test appropriate authentication, authorization, secure configuration, logging, and network access restrictions.
+
+## Limitations
+
+- Monitoring is limited to configured watch paths and the runtime environment's filesystem access.
+- Detection and status results depend on the available event data and implemented detection logic.
+- Simulation mode is designed for demonstrations and should not be interpreted as proof of production-grade threat detection.
+- The project has not been represented here as independently audited or production-certified.
+- A successful automated test suite does not guarantee that every deployment environment or security scenario will behave identically.
+
+## Author
+
+**Sai Deshmukh**
+
+GitHub: https://github.com/saideshmukh-cyber
+
+## Project Status
+
+RDRS has a Docker-based local run configuration and an automated test suite. The repository is available on GitHub.
+
+A public live deployment is not specified in this README. If a live demonstration URL is required for submission, add the verified URL here after deployment and security checks.
